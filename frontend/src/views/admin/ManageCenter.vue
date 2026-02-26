@@ -186,8 +186,18 @@
               </div>
 
               <div v-if="item.status === 'pending' && !authStore.isGuest" class="flex gap-2.5 mt-2.5">
-                <button class="btn-danger flex-1 !py-2.5 !text-sm !rounded-xl" @click="handleReject(item.id)">拒绝</button>
-                <button class="btn-primary flex-1 !py-2.5 !text-sm !rounded-xl" @click="handleApprove(item.id)">通过</button>
+                <button class="btn-danger flex-1 !py-2.5 !text-sm !rounded-xl" @click="openApproveDialog(item, 'reject')">拒绝</button>
+                <button class="btn-primary flex-1 !py-2.5 !text-sm !rounded-xl" @click="openApproveDialog(item, 'approve')">通过</button>
+              </div>
+
+              <!-- 显示审批留言 -->
+              <div v-if="item.approve_message || item.approve_images" class="mt-2.5 p-2.5 rounded-xl" style="background: var(--theme-bg-secondary)">
+                <p v-if="item.approve_message" class="text-xs" style="color: var(--theme-text)">💬 {{ item.approve_message }}</p>
+                <div v-if="item.approve_images" class="flex gap-2 mt-1.5">
+                  <img v-for="(img, idx) in item.approve_images.split(',')" :key="idx"
+                       :src="getImageUrl(img)" class="w-12 h-12 rounded-lg object-cover cursor-pointer"
+                       @click="previewImage(getImageUrl(img))" />
+                </div>
               </div>
             </div>
 
@@ -280,15 +290,7 @@
               <input v-model="prizeForm.name" class="input" placeholder="奖品名称" />
               <textarea v-model="prizeForm.description" class="input resize-none" rows="2" placeholder="奖品描述" />
               <div class="flex gap-2">
-                <select v-model="prizeForm.tier" class="input flex-1">
-                  <option value="" disabled>选择档位</option>
-                  <option v-for="(cfg, key) in TIER_CONFIG" :key="key" :value="key">
-                    {{ cfg.emoji }} {{ cfg.label }}
-                  </option>
-                </select>
                 <input v-model.number="prizeForm.stock" type="number" class="input flex-1" placeholder="库存" min="0" />
-              </div>
-              <div class="flex gap-2">
                 <select v-model="prizeForm.type" class="input flex-1">
                   <option value="material">🎁 实物</option>
                   <option value="virtual">💫 虚拟</option>
@@ -308,6 +310,7 @@
                          placeholder="所需积分" min="1" />
                   <p v-if="prizeForm.material_cost && prizeForm.points_cost" class="text-[11px] mt-1" style="color: var(--theme-primary)">
                     💡 {{ prizeForm.material_cost }}元 → {{ prizeForm.points_cost }}积分
+                    · 自动档位：{{ autoTierLabel }}
                   </p>
                 </div>
               </template>
@@ -315,22 +318,27 @@
               <template v-else>
                 <input v-model.number="prizeForm.points_cost" type="number" class="input"
                        placeholder="所需积分" min="1" />
+                <p v-if="prizeForm.points_cost" class="text-[11px] mt-1" style="color: var(--theme-primary)">
+                  💡 自动档位：{{ autoTierLabel }}
+                </p>
               </template>
-              <div class="flex items-center gap-3">
-                <label class="flex-1">
-                  <div class="card !p-3 text-center cursor-pointer active:scale-95 transition-all"
-                       style="border: 2px dashed var(--theme-primary-light)">
-                    <span class="text-2xl block mb-1">📷</span>
-                    <span class="text-xs" style="color: var(--theme-text-light)">
-                      {{ prizeImageFile ? prizeImageFile.name : '上传图片' }}
-                    </span>
+              <!-- 多图上传（最多2张） -->
+              <div>
+                <p class="text-xs font-semibold mb-2" style="color: var(--theme-text)">奖品图片（最多2张，无图则显示默认图标）</p>
+                <div class="flex gap-2">
+                  <div v-for="(preview, idx) in prizeImagePreviews" :key="idx"
+                       class="w-20 h-20 rounded-2xl overflow-hidden shrink-0 relative">
+                    <img :src="preview" class="w-full h-full object-cover" />
+                    <button class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white text-xs flex items-center justify-center"
+                            @click="removePrizeImage(idx)">×</button>
+                  </div>
+                  <label v-if="prizeImagePreviews.length < 2"
+                         class="w-20 h-20 rounded-2xl flex items-center justify-center cursor-pointer active:scale-95 transition-all"
+                         style="border: 2px dashed var(--theme-primary-light); background: var(--theme-bg-secondary)">
+                    <span class="text-2xl">📷</span>
                     <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden"
                            @change="onPrizeImageChange" />
-                  </div>
-                </label>
-                <div v-if="prizeForm.image || prizeImagePreview"
-                     class="w-20 h-20 rounded-2xl overflow-hidden shrink-0">
-                  <img :src="prizeImagePreview || getImageUrl(prizeForm.image)" class="w-full h-full object-cover" />
+                  </label>
                 </div>
               </div>
               <div class="flex gap-3">
@@ -402,6 +410,63 @@
       @cancel="showDeleteConfirm = false"
       @update:visible="showDeleteConfirm = $event"
     />
+
+    <!-- ====== 审批弹窗（支持留言+图片） ====== -->
+    <teleport to="body">
+      <transition name="page">
+        <div v-if="showApproveDialog" class="fixed inset-0 z-[100] flex items-end justify-center"
+             @click.self="showApproveDialog = false">
+          <div class="absolute inset-0 bg-black/40"></div>
+          <div class="relative w-full max-w-[430px] card rounded-b-none p-6 animate-slide-up">
+            <h3 class="text-lg font-bold mb-4 text-center" style="color: var(--theme-text)">
+              {{ approveAction === 'approve' ? '✅ 通过审批' : '❌ 拒绝兑换' }}
+            </h3>
+            <p class="text-sm mb-3 text-center" style="color: var(--theme-text-secondary)">
+              {{ approveTarget?.prize_name }} — {{ approveTarget?.child_name }}
+            </p>
+            <div class="space-y-3">
+              <textarea v-model="approveMessage" class="input resize-none" rows="3"
+                        placeholder="给孩子留言（可选，如支付宝口令红包、领取说明等）" />
+              <div>
+                <p class="text-xs mb-1.5" style="color: var(--theme-text-light)">附带图片（可选，如二维码、截图等）</p>
+                <div class="flex gap-2">
+                  <div v-for="(preview, idx) in approveImagePreviews" :key="idx"
+                       class="w-16 h-16 rounded-xl overflow-hidden relative">
+                    <img :src="preview" class="w-full h-full object-cover" />
+                    <button class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/50 text-white text-[10px] flex items-center justify-center"
+                            @click="removeApproveImage(idx)">×</button>
+                  </div>
+                  <label v-if="approveImagePreviews.length < 3"
+                         class="w-16 h-16 rounded-xl flex items-center justify-center cursor-pointer"
+                         style="border: 2px dashed var(--theme-primary-light); background: var(--theme-bg-secondary)">
+                    <span class="text-xl">📷</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden"
+                           @change="onApproveImageChange" />
+                  </label>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <button class="btn-secondary flex-1" @click="showApproveDialog = false">取消</button>
+                <button :class="approveAction === 'approve' ? 'btn-primary' : 'btn-danger'" class="flex-1"
+                        @click="submitApproval" :disabled="submitting">
+                  {{ submitting ? '处理中...' : (approveAction === 'approve' ? '确认通过' : '确认拒绝') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
+    <!-- ====== 图片预览弹窗 ====== -->
+    <teleport to="body">
+      <transition name="page">
+        <div v-if="previewImageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/80"
+             @click="previewImageUrl = ''">
+          <img :src="previewImageUrl" class="max-w-[90vw] max-h-[90vh] rounded-2xl object-contain" />
+        </div>
+      </transition>
+    </teleport>
 
     <BottomNav />
   </div>
@@ -526,17 +591,36 @@ const prizeForm = ref({
 })
 const prizeImageFile = ref<File | null>(null)
 const prizeImagePreview = ref('')
+const prizeImageFiles = ref<File[]>([])
+const prizeImagePreviews = ref<string[]>([])
 const pointsPerYuan = ref(10)
 
 const filteredPrizes = computed(() =>
   prizeTier.value ? prizes.value.filter(p => p.tier === prizeTier.value) : prizes.value
 )
 
+function calcAutoTier(points: number): string {
+  if (points <= 100) return 'small'
+  if (points <= 500) return 'medium'
+  if (points <= 2000) return 'large'
+  return 'super'
+}
+
+const autoTierLabel = computed(() => {
+  const pts = prizeForm.value.points_cost
+  if (!pts || pts <= 0) return ''
+  const tier = calcAutoTier(pts)
+  const cfg = TIER_CONFIG[tier]
+  return cfg ? `${cfg.emoji} ${cfg.label}` : ''
+})
+
 function newPrize() {
   editingPrize.value = null
   prizeForm.value = { name: '', description: '', tier: 'small', type: 'material', points_cost: '' as any, material_cost: '' as any, stock: 10, image: '' }
   prizeImageFile.value = null
   prizeImagePreview.value = ''
+  prizeImageFiles.value = []
+  prizeImagePreviews.value = []
   showPrizeForm.value = true
 }
 
@@ -554,6 +638,11 @@ function editPrize(prize: Prize) {
   }
   prizeImageFile.value = null
   prizeImagePreview.value = ''
+  prizeImageFiles.value = []
+  // 加载已有图片
+  prizeImagePreviews.value = prize.images
+    ? prize.images.split(',').filter(Boolean).map(img => getImageUrl(img))
+    : prize.image ? [getImageUrl(prize.image)] : []
   showPrizeForm.value = true
 }
 
@@ -565,10 +654,17 @@ function onMaterialCostChange() {
 
 function onPrizeImageChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) {
-    prizeImageFile.value = file
-    prizeImagePreview.value = URL.createObjectURL(file)
+  if (file && prizeImageFiles.value.length < 2) {
+    prizeImageFiles.value.push(file)
+    prizeImagePreviews.value.push(URL.createObjectURL(file))
   }
+  // reset input
+  ;(e.target as HTMLInputElement).value = ''
+}
+
+function removePrizeImage(idx: number) {
+  prizeImageFiles.value.splice(idx, 1)
+  prizeImagePreviews.value.splice(idx, 1)
 }
 
 async function submitPrize() {
@@ -578,12 +674,14 @@ async function submitPrize() {
     const formData = new FormData()
     formData.append('name', prizeForm.value.name)
     formData.append('description', prizeForm.value.description)
-    formData.append('tier', prizeForm.value.tier)
     formData.append('type', prizeForm.value.type)
     formData.append('pointsCost', String(prizeForm.value.points_cost))
     formData.append('materialCost', String(prizeForm.value.type === 'material' ? prizeForm.value.material_cost : 0))
     formData.append('stock', String(prizeForm.value.stock))
-    if (prizeImageFile.value) formData.append('image', prizeImageFile.value)
+    // 多图上传
+    for (const file of prizeImageFiles.value) {
+      formData.append('images', file)
+    }
 
     if (editingPrize.value) {
       await prizeApi.update(editingPrize.value.id, formData)
@@ -644,6 +742,67 @@ function getStatusStyle(status: string) {
     fulfilled: { background: '#F0F8FF', color: '#0984E3' },
   }
   return styles[status] || { background: '#F0F0F0', color: '#666' }
+}
+
+// 审批弹窗
+const showApproveDialog = ref(false)
+const approveTarget = ref<Redemption | null>(null)
+const approveAction = ref<'approve' | 'reject'>('approve')
+const approveMessage = ref('')
+const approveImageFiles = ref<File[]>([])
+const approveImagePreviews = ref<string[]>([])
+const previewImageUrl = ref('')
+
+function openApproveDialog(item: Redemption, action: 'approve' | 'reject') {
+  approveTarget.value = item
+  approveAction.value = action
+  approveMessage.value = ''
+  approveImageFiles.value = []
+  approveImagePreviews.value = []
+  showApproveDialog.value = true
+}
+
+function onApproveImageChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file && approveImageFiles.value.length < 3) {
+    approveImageFiles.value.push(file)
+    approveImagePreviews.value.push(URL.createObjectURL(file))
+  }
+  ;(e.target as HTMLInputElement).value = ''
+}
+
+function removeApproveImage(idx: number) {
+  approveImageFiles.value.splice(idx, 1)
+  approveImagePreviews.value.splice(idx, 1)
+}
+
+function previewImage(url: string) {
+  previewImageUrl.value = url
+}
+
+async function submitApproval() {
+  if (!approveTarget.value) return
+  submitting.value = true
+  try {
+    const formData = new FormData()
+    if (approveMessage.value) formData.append('message', approveMessage.value)
+    for (const file of approveImageFiles.value) {
+      formData.append('images', file)
+    }
+    const hasData = approveMessage.value || approveImageFiles.value.length > 0
+
+    if (approveAction.value === 'approve') {
+      await prizeApi.approve(approveTarget.value.id, hasData ? formData : undefined)
+    } else {
+      await prizeApi.reject(approveTarget.value.id, hasData ? formData : undefined)
+    }
+    showApproveDialog.value = false
+    await loadRedemptions()
+  } catch (e: any) {
+    alert(e.response?.data?.message || '操作失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 async function handleApprove(id: number) {

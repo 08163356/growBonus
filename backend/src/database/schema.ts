@@ -134,5 +134,24 @@ export function initDatabase() {
     db.exec("ALTER TABLE families ADD COLUMN points_per_yuan REAL NOT NULL DEFAULT 10");
   }
 
+  // 迁移：redemptions 添加审批留言字段
+  try {
+    db.prepare("SELECT approve_message FROM redemptions LIMIT 1").get();
+  } catch {
+    db.exec("ALTER TABLE redemptions ADD COLUMN approve_message TEXT DEFAULT ''");
+  }
+  try {
+    db.prepare("SELECT approve_images FROM redemptions LIMIT 1").get();
+  } catch {
+    db.exec("ALTER TABLE redemptions ADD COLUMN approve_images TEXT DEFAULT ''");
+  }
+
+  // 迁移：prizes 添加多图字段
+  try {
+    db.prepare("SELECT images FROM prizes LIMIT 1").get();
+  } catch {
+    db.exec("ALTER TABLE prizes ADD COLUMN images TEXT DEFAULT ''");
+  }
+
   console.log('Database initialized successfully');
 }

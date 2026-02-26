@@ -62,11 +62,15 @@ export const prizeService = {
     return redemptionDAO.findByFamilyId(familyId);
   },
 
+  getChildRedemptions(childId: number) {
+    return redemptionDAO.findByChildId(childId);
+  },
+
   getPendingRedemptions(familyId: number) {
     return redemptionDAO.findPendingByFamilyId(familyId);
   },
 
-  approve(redemptionId: number, approvedBy: number) {
+  approve(redemptionId: number, approvedBy: number, message?: string, images?: string) {
     const redemption = redemptionDAO.findById(redemptionId);
     if (!redemption) throw new Error('兑换记录不存在');
 
@@ -74,7 +78,7 @@ export const prizeService = {
     if (!prize) throw new Error('奖品不存在');
 
     const doApprove = db.transaction(() => {
-      redemptionDAO.updateStatus(redemptionId, 'approved', approvedBy);
+      redemptionDAO.updateStatus(redemptionId, 'approved', approvedBy, message, images);
 
       if (prize.type === 'material' && prize.material_cost > 0) {
         const user = userDAO.findById(redemption.child_id);
@@ -87,7 +91,7 @@ export const prizeService = {
     doApprove();
   },
 
-  reject(redemptionId: number, approvedBy: number) {
-    redemptionDAO.updateStatus(redemptionId, 'rejected', approvedBy);
+  reject(redemptionId: number, approvedBy: number, message?: string, images?: string) {
+    redemptionDAO.updateStatus(redemptionId, 'rejected', approvedBy, message, images);
   },
 };

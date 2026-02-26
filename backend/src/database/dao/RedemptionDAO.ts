@@ -17,7 +17,8 @@ export class RedemptionDAO extends BaseDAO<Redemption> {
 
   findByChildId(childId: number): any[] {
     return db.prepare(`
-      SELECT r.*, p.name as prize_name, p.image as prize_image, p.tier, p.type as prize_type
+      SELECT r.*, p.name as prize_name, p.image as prize_image, p.images as prize_images,
+             p.tier, p.type as prize_type
       FROM redemptions r
       JOIN prizes p ON r.prize_id = p.id
       WHERE r.child_id = ?
@@ -27,7 +28,8 @@ export class RedemptionDAO extends BaseDAO<Redemption> {
 
   findByFamilyId(familyId: number): any[] {
     return db.prepare(`
-      SELECT r.*, p.name as prize_name, p.image as prize_image, p.tier, p.type as prize_type,
+      SELECT r.*, p.name as prize_name, p.image as prize_image, p.images as prize_images,
+             p.tier, p.type as prize_type,
              u.name as child_name, u.avatar as child_avatar
       FROM redemptions r
       JOIN prizes p ON r.prize_id = p.id
@@ -39,7 +41,8 @@ export class RedemptionDAO extends BaseDAO<Redemption> {
 
   findPendingByFamilyId(familyId: number): any[] {
     return db.prepare(`
-      SELECT r.*, p.name as prize_name, p.image as prize_image, p.tier, p.type as prize_type,
+      SELECT r.*, p.name as prize_name, p.image as prize_image, p.images as prize_images,
+             p.tier, p.type as prize_type,
              p.material_cost, u.name as child_name, u.avatar as child_avatar
       FROM redemptions r
       JOIN prizes p ON r.prize_id = p.id
@@ -49,9 +52,10 @@ export class RedemptionDAO extends BaseDAO<Redemption> {
     `).all(familyId);
   }
 
-  updateStatus(id: number, status: string, approvedBy?: number): void {
+  updateStatus(id: number, status: string, approvedBy?: number, message?: string, images?: string): void {
     if (approvedBy) {
-      db.prepare('UPDATE redemptions SET status = ?, approved_by = ? WHERE id = ?').run(status, approvedBy, id);
+      db.prepare('UPDATE redemptions SET status = ?, approved_by = ?, approve_message = ?, approve_images = ? WHERE id = ?')
+        .run(status, approvedBy, message || '', images || '', id);
     } else {
       db.prepare('UPDATE redemptions SET status = ? WHERE id = ?').run(status, id);
     }

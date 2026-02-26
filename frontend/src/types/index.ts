@@ -96,6 +96,7 @@ export interface Prize {
   name: string
   description: string
   image: string
+  images: string
   points_cost: number
   material_cost: number
   tier: string
@@ -111,9 +112,12 @@ export interface Redemption {
   points_cost: number
   status: string
   approved_by: number | null
+  approve_message: string
+  approve_images: string
   created_at: string
   prize_name?: string
   prize_image?: string
+  prize_images?: string
   tier?: string
   prize_type?: string
   material_cost?: number

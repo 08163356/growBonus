@@ -21,13 +21,26 @@ export const prizeApi = {
   getRedemptions() {
     return api.get<ApiResponse<Redemption[]>>('/prizes/redemptions')
   },
+  getChildRedemptions() {
+    return api.get<ApiResponse<Redemption[]>>('/prizes/redemptions/child')
+  },
   getPendingRedemptions() {
     return api.get<ApiResponse<Redemption[]>>('/prizes/redemptions/pending')
   },
-  approve(id: number) {
+  approve(id: number, data?: FormData) {
+    if (data) {
+      return api.put<ApiResponse>(`/prizes/redemptions/${id}/approve`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    }
     return api.put<ApiResponse>(`/prizes/redemptions/${id}/approve`)
   },
-  reject(id: number) {
+  reject(id: number, data?: FormData) {
+    if (data) {
+      return api.put<ApiResponse>(`/prizes/redemptions/${id}/reject`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    }
     return api.put<ApiResponse>(`/prizes/redemptions/${id}/reject`)
   },
 }

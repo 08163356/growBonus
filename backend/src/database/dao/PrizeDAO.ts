@@ -20,6 +20,7 @@ export class PrizeDAO extends BaseDAO<Prize> {
     name: string;
     description?: string;
     image?: string;
+    images?: string;
     pointsCost: number;
     materialCost?: number;
     tier: string;
@@ -27,18 +28,18 @@ export class PrizeDAO extends BaseDAO<Prize> {
     stock?: number;
   }): Prize {
     const stmt = db.prepare(`
-      INSERT INTO prizes (family_id, name, description, image, points_cost, material_cost, tier, type, stock)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO prizes (family_id, name, description, image, images, points_cost, material_cost, tier, type, stock)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const result = stmt.run(
-      data.familyId, data.name, data.description || '', data.image || '',
+      data.familyId, data.name, data.description || '', data.image || '', data.images || '',
       data.pointsCost, data.materialCost || 0, data.tier, data.type, data.stock ?? -1
     );
     return this.findById(result.lastInsertRowid as number)!;
   }
 
   update(id: number, data: Partial<{
-    name: string; description: string; image: string; pointsCost: number;
+    name: string; description: string; image: string; images: string; pointsCost: number;
     materialCost: number; tier: string; type: string; stock: number; isActive: number;
   }>): Prize | undefined {
     const fields: string[] = [];
@@ -47,6 +48,7 @@ export class PrizeDAO extends BaseDAO<Prize> {
     if (data.name !== undefined) { fields.push('name = ?'); values.push(data.name); }
     if (data.description !== undefined) { fields.push('description = ?'); values.push(data.description); }
     if (data.image !== undefined) { fields.push('image = ?'); values.push(data.image); }
+    if (data.images !== undefined) { fields.push('images = ?'); values.push(data.images); }
     if (data.pointsCost !== undefined) { fields.push('points_cost = ?'); values.push(data.pointsCost); }
     if (data.materialCost !== undefined) { fields.push('material_cost = ?'); values.push(data.materialCost); }
     if (data.tier !== undefined) { fields.push('tier = ?'); values.push(data.tier); }
