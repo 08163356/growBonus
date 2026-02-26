@@ -1,0 +1,19 @@
+[Unit]
+Description=GrowBonus Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/growbonus/backend
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=growbonus
+Environment=NODE_ENV=production
+Environment=PORT=8003
+
+[Install]
+WantedBy=multi-user.target

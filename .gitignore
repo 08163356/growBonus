@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.db
+*.db-wal
+*.db-shm
+.env
+uploads/
+*.log
+.DS_Store
+Thumbs.db
+growbonus-deploy.zip
+$null
+-p/
+echo/
+checking frontend/

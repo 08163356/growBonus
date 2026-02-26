@@ -1,0 +1,49 @@
+{
+  "name": "grow-bonus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GrowBonus - 成长奖励系统",
+  "scripts": {
+    "dev:frontend": "cd frontend && npx vite",
+    "dev:backend": "npx ts-node-dev --respawn --transpile-only --project backend/tsconfig.json backend/src/index.ts",
+    "build:frontend": "cd frontend && npx vue-tsc -b && npx vite build",
+    "build:backend": "cd backend && npx tsc",
+    "build": "npm run build:frontend && npm run build:backend",
+    "seed": "npx ts-node --project backend/tsconfig.json backend/src/scripts/seed.ts"
+  },
+  "dependencies": {
+    "axios": "^1.13.5",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "echarts": "^6.0.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "lottie-web": "^5.13.0",
+    "multer": "^2.0.2",
+    "pinia": "^3.0.4",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.29",
+    "vue-router": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^25.3.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "tailwindcss": "^4.2.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0",
+    "vue-tsc": "^3.2.5"
+  }
+}
