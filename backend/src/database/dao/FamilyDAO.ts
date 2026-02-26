@@ -15,14 +15,24 @@ export class FamilyDAO extends BaseDAO<Family> {
     return this.findById(result.lastInsertRowid as number)!;
   }
 
-  getBudgetStatus(familyId: number): { materialBudget: number; materialUsed: number; remaining: number } | undefined {
-    const family = db.prepare('SELECT material_budget, material_used FROM families WHERE id = ?').get(familyId) as any;
+  getBudgetStatus(familyId: number): { materialBudget: number; materialUsed: number; remaining: number; pointsPerYuan: number } | undefined {
+    const family = db.prepare('SELECT material_budget, material_used, points_per_yuan FROM families WHERE id = ?').get(familyId) as any;
     if (!family) return undefined;
     return {
       materialBudget: family.material_budget,
       materialUsed: family.material_used,
       remaining: family.material_budget - family.material_used,
+      pointsPerYuan: family.points_per_yuan ?? 10,
     };
+  }
+
+  getPointsPerYuan(familyId: number): number {
+    const family = db.prepare('SELECT points_per_yuan FROM families WHERE id = ?').get(familyId) as any;
+    return family?.points_per_yuan ?? 10;
+  }
+
+  updatePointsPerYuan(familyId: number, rate: number): void {
+    db.prepare('UPDATE families SET points_per_yuan = ? WHERE id = ?').run(rate, familyId);
   }
 
   addMaterialUsed(familyId: number, amount: number): void {

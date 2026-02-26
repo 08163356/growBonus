@@ -206,7 +206,7 @@ const selectedChildId = ref(0)
 const period = ref<'weekly' | 'monthly'>('weekly')
 const loading = ref(false)
 const reportData = ref<ReportData | null>(null)
-const budget = ref<BudgetStatus>({ materialBudget: 3000, materialUsed: 0, remaining: 3000 })
+const budget = ref<BudgetStatus>({ materialBudget: 3000, materialUsed: 0, remaining: 3000, pointsPerYuan: 10 })
 const showAddBudget = ref(false)
 const addBudgetAmount = ref<number>(1000)
 

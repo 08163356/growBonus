@@ -127,5 +127,12 @@ export function initDatabase() {
     db.exec("ALTER TABLE users ADD COLUMN background_image TEXT DEFAULT ''");
   }
 
+  // 迁移：添加 points_per_yuan 字段（积分/元换算率）
+  try {
+    db.prepare("SELECT points_per_yuan FROM families LIMIT 1").get();
+  } catch {
+    db.exec("ALTER TABLE families ADD COLUMN points_per_yuan REAL NOT NULL DEFAULT 10");
+  }
+
   console.log('Database initialized successfully');
 }

@@ -286,17 +286,36 @@
                     {{ cfg.emoji }} {{ cfg.label }}
                   </option>
                 </select>
-                <input v-model.number="prizeForm.points_cost" type="number" class="input flex-1" placeholder="所需积分" min="1" />
+                <input v-model.number="prizeForm.stock" type="number" class="input flex-1" placeholder="库存" min="0" />
               </div>
               <div class="flex gap-2">
                 <select v-model="prizeForm.type" class="input flex-1">
                   <option value="material">🎁 实物</option>
                   <option value="virtual">💫 虚拟</option>
                 </select>
-                <input v-model.number="prizeForm.stock" type="number" class="input flex-1" placeholder="库存" min="0" />
               </div>
-              <input v-if="prizeForm.type === 'material'" v-model.number="prizeForm.material_cost"
-                     type="number" class="input" placeholder="实物成本（元）" min="0" />
+              <!-- 实物：输入成本自动换算积分 -->
+              <template v-if="prizeForm.type === 'material'">
+                <div>
+                  <input v-model.number="prizeForm.material_cost" type="number" class="input"
+                         placeholder="实物成本（元）" min="0" @input="onMaterialCostChange" />
+                  <p class="text-[11px] mt-1" style="color: var(--theme-text-light)">
+                    换算率：1元 = {{ pointsPerYuan }}积分，输入成本自动计算积分
+                  </p>
+                </div>
+                <div>
+                  <input v-model.number="prizeForm.points_cost" type="number" class="input"
+                         placeholder="所需积分" min="1" />
+                  <p v-if="prizeForm.material_cost && prizeForm.points_cost" class="text-[11px] mt-1" style="color: var(--theme-primary)">
+                    💡 {{ prizeForm.material_cost }}元 → {{ prizeForm.points_cost }}积分
+                  </p>
+                </div>
+              </template>
+              <!-- 虚拟：直接填积分 -->
+              <template v-else>
+                <input v-model.number="prizeForm.points_cost" type="number" class="input"
+                       placeholder="所需积分" min="1" />
+              </template>
               <div class="flex items-center gap-3">
                 <label class="flex-1">
                   <div class="card !p-3 text-center cursor-pointer active:scale-95 transition-all"
@@ -394,6 +413,7 @@ import { useAuthStore } from '../../stores/auth'
 import { authApi } from '../../services/authService'
 import { templateApi } from '../../services/templateService'
 import { prizeApi } from '../../services/prizeService'
+import { reportApi } from '../../services/reportService'
 import { CATEGORY_CONFIG, TIER_CONFIG, formatDate } from '../../utils/constants'
 import { getImageUrl } from '../../services/api'
 import type { BehaviorTemplate, Prize, Redemption, ChildInfo } from '../../types'
@@ -506,6 +526,7 @@ const prizeForm = ref({
 })
 const prizeImageFile = ref<File | null>(null)
 const prizeImagePreview = ref('')
+const pointsPerYuan = ref(10)
 
 const filteredPrizes = computed(() =>
   prizeTier.value ? prizes.value.filter(p => p.tier === prizeTier.value) : prizes.value
@@ -534,6 +555,12 @@ function editPrize(prize: Prize) {
   prizeImageFile.value = null
   prizeImagePreview.value = ''
   showPrizeForm.value = true
+}
+
+function onMaterialCostChange() {
+  if (prizeForm.value.type === 'material' && prizeForm.value.material_cost > 0) {
+    prizeForm.value.points_cost = Math.round(prizeForm.value.material_cost * pointsPerYuan.value)
+  }
 }
 
 function onPrizeImageChange(e: Event) {
@@ -576,6 +603,15 @@ async function loadPrizes() {
   try {
     const res = await prizeApi.getAll()
     if (res.data.data) prizes.value = res.data.data
+  } catch (e) { console.error(e) }
+}
+
+async function loadPointsPerYuan() {
+  try {
+    const res = await reportApi.getBudgetStatus()
+    if (res.data.data?.pointsPerYuan) {
+      pointsPerYuan.value = res.data.data.pointsPerYuan
+    }
   } catch (e) { console.error(e) }
 }
 
@@ -718,6 +754,7 @@ onMounted(async () => {
     loadTemplates(),
     loadPrizes(),
     loadRedemptions(),
+    loadPointsPerYuan(),
   ])
 })
 </script>

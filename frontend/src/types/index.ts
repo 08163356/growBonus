@@ -145,6 +145,7 @@ export interface BudgetStatus {
   materialBudget: number
   materialUsed: number
   remaining: number
+  pointsPerYuan: number
 }
 
 export interface ReportData {
