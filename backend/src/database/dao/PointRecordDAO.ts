@@ -40,7 +40,7 @@ export class PointRecordDAO extends BaseDAO<PointRecord> {
 
   findByChildIdWithDetails(childId: number, limit = 50, offset = 0): any[] {
     return db.prepare(`
-      SELECT pr.*, bt.name as template_name, bt.category, bt.icon as template_icon,
+      SELECT pr.*, bt.name as template_name, bt.category, bt.icon as template_icon, bt.description as template_description,
              u.name as created_by_name,
              (SELECT COUNT(*) FROM likes WHERE point_record_id = pr.id) as like_count
       FROM point_records pr
@@ -68,7 +68,7 @@ export class PointRecordDAO extends BaseDAO<PointRecord> {
 
   getTodayRecords(childId: number): PointRecord[] {
     return db.prepare(`
-      SELECT pr.*, bt.name as template_name, bt.category, bt.icon as template_icon
+      SELECT pr.*, bt.name as template_name, bt.category, bt.icon as template_icon, bt.description as template_description
       FROM point_records pr
       LEFT JOIN behavior_templates bt ON pr.template_id = bt.id
       WHERE pr.child_id = ? AND date(pr.created_at) = date('now', 'localtime')

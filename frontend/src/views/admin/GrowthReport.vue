@@ -5,6 +5,10 @@
       <div class="flex items-center justify-between mb-5">
         <h1 class="text-xl font-bold" style="color: var(--theme-text)">成长报告 📊</h1>
         <div class="flex items-center gap-2">
+          <button class="w-8 h-8 rounded-full flex items-center justify-center text-sm active:scale-90 transition-all"
+                  style="background: var(--theme-bg-secondary)"
+                  @click="showGuide = true"
+                  title="使用守则">📖</button>
           <RoleSwitcher />
           <BackgroundSetter />
         </div>
@@ -50,7 +54,7 @@
 
     <template v-else>
       <!-- 积分总览卡片 -->
-      <div class="px-page mb-6">
+      <div class="px-page mb-8">
         <div class="card p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-bold" style="color: var(--theme-text)">
@@ -80,7 +84,7 @@
       </div>
 
       <!-- 积分趋势折线图 -->
-      <div class="px-page mb-6">
+      <div class="px-page mb-8">
         <div class="card p-5">
           <h3 class="text-base font-bold mb-4" style="color: var(--theme-text)">积分趋势 📈</h3>
           <div ref="lineChartRef" class="w-full" style="height: 220px"></div>
@@ -91,7 +95,7 @@
       </div>
 
       <!-- 行为分类饼图 -->
-      <div class="px-page mb-6">
+      <div class="px-page mb-8">
         <div class="card p-5">
           <h3 class="text-base font-bold mb-4" style="color: var(--theme-text)">行为分类 🎯</h3>
           <div ref="pieChartRef" class="w-full" style="height: 240px"></div>
@@ -102,7 +106,7 @@
       </div>
 
       <!-- 预算卡片 -->
-      <div class="px-page mb-6">
+      <div class="px-page mb-8">
         <div class="card p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-bold" style="color: var(--theme-text)">实物预算 💰</h3>
@@ -186,6 +190,7 @@
     </teleport>
 
     <BottomNav />
+    <ParentGuide v-model:visible="showGuide" />
   </div>
 </template>
 
@@ -198,8 +203,10 @@ import type { ChildInfo, ReportData, BudgetStatus } from '../../types'
 import BottomNav from '../../components/common/BottomNav.vue'
 import BackgroundSetter from '../../components/common/BackgroundSetter.vue'
 import RoleSwitcher from '../../components/common/RoleSwitcher.vue'
+import ParentGuide from '../../components/common/ParentGuide.vue'
 
 const authStore = useAuthStore()
+const showGuide = ref(false)
 
 const children = ref<ChildInfo[]>([])
 const selectedChildId = ref(0)

@@ -79,6 +79,7 @@ export interface PointRecord {
   template_name?: string
   category?: string
   template_icon?: string
+  template_description?: string
   created_by_name?: string
   like_count?: number
 }

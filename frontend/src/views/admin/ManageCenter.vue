@@ -5,6 +5,10 @@
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-bold" style="color: var(--theme-text)">管理中心 ⚙️</h1>
         <div class="flex items-center gap-2">
+          <button class="w-8 h-8 rounded-full flex items-center justify-center text-sm active:scale-90 transition-all"
+                  style="background: var(--theme-bg-secondary)"
+                  @click="showGuide = true"
+                  title="使用守则">📖</button>
           <RoleSwitcher />
           <BackgroundSetter />
         </div>
@@ -56,7 +60,7 @@
             </button>
           </div>
 
-          <div class="space-y-3 mb-6">
+          <div class="flex flex-col gap-3.5 mb-6">
             <div v-for="tpl in filteredTemplates" :key="tpl.id"
                  class="card p-3.5 flex items-center gap-2.5">
               <span class="text-xl shrink-0">{{ tpl.icon }}</span>
@@ -68,7 +72,7 @@
                     style="background: var(--theme-bg-secondary); color: var(--theme-primary)">
                 +{{ tpl.points }}
               </span>
-              <div v-if="authStore.isAdmin" class="shrink-0 flex gap-1">
+              <div v-if="authStore.isAdult" class="shrink-0 flex gap-1">
                 <button class="w-7 h-7 rounded-full flex items-center justify-center text-xs active:scale-90"
                         style="background: var(--theme-bg-secondary)" @click="editTemplate(tpl)">✏️</button>
                 <button class="w-7 h-7 rounded-full flex items-center justify-center text-xs active:scale-90"
@@ -81,7 +85,7 @@
             </div>
           </div>
 
-          <button v-if="authStore.isAdmin"
+          <button v-if="authStore.isAdult"
             class="fixed bottom-28 z-40 w-14 h-14 rounded-full flex items-center justify-center text-2xl active:scale-90 transition-all"
             style="background: var(--theme-gradient); color: white; box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary) 40%, transparent); right: max(16px, calc((100vw - 430px) / 2 + 16px))"
             @click="newTemplate">
@@ -113,7 +117,7 @@
             </button>
           </div>
 
-          <div class="space-y-3 mb-6">
+          <div class="flex flex-col gap-3.5 mb-6">
             <div v-for="prize in filteredPrizes" :key="prize.id"
                  class="card p-3.5 flex items-center gap-2.5">
               <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
@@ -127,7 +131,7 @@
                   ⭐{{ prize.points_cost }}分 · 库存{{ prize.stock }}
                 </p>
               </div>
-              <div v-if="authStore.isAdmin" class="shrink-0">
+              <div v-if="authStore.isAdult" class="shrink-0">
                 <button class="w-7 h-7 rounded-full flex items-center justify-center text-xs active:scale-90"
                         style="background: var(--theme-bg-secondary)" @click="editPrize(prize)">✏️</button>
               </div>
@@ -138,7 +142,7 @@
             </div>
           </div>
 
-          <button v-if="authStore.isAdmin"
+          <button v-if="authStore.isAdult"
             class="fixed bottom-28 z-40 w-14 h-14 rounded-full flex items-center justify-center text-2xl active:scale-90 transition-all"
             style="background: var(--theme-gradient); color: white; box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary) 40%, transparent); right: max(16px, calc((100vw - 430px) / 2 + 16px))"
             @click="newPrize">
@@ -161,7 +165,7 @@
             </button>
           </div>
 
-          <div class="space-y-3">
+          <div class="flex flex-col gap-3.5">
             <div v-for="item in filteredRedemptions" :key="item.id" class="card p-3.5">
               <div class="flex items-center gap-2.5 mb-2.5">
                 <span class="text-xl">{{ item.child_avatar || '👧' }}</span>
@@ -185,7 +189,7 @@
                 </div>
               </div>
 
-              <div v-if="item.status === 'pending' && !authStore.isGuest" class="flex gap-2.5 mt-2.5">
+              <div v-if="item.status === 'pending'" class="flex gap-2.5 mt-2.5">
                 <button class="btn-danger flex-1 !py-2.5 !text-sm !rounded-xl" @click="openApproveDialog(item, 'reject')">拒绝</button>
                 <button class="btn-primary flex-1 !py-2.5 !text-sm !rounded-xl" @click="openApproveDialog(item, 'approve')">通过</button>
               </div>
@@ -210,7 +214,7 @@
 
         <!-- ====== 孩子管理 ====== -->
         <div v-if="activeTab === 'children'">
-          <div class="space-y-3 mb-6">
+          <div class="flex flex-col gap-3.5 mb-6">
             <div v-for="child in allChildren" :key="child.id"
                  class="card p-4 flex items-center gap-3">
               <span class="text-2xl">{{ child.avatar || '👧' }}</span>
@@ -469,8 +473,8 @@
     </teleport>
 
     <BottomNav />
+    <ParentGuide v-model:visible="showGuide" />
   </div>
-</template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
@@ -486,8 +490,10 @@ import BottomNav from '../../components/common/BottomNav.vue'
 import BackgroundSetter from '../../components/common/BackgroundSetter.vue'
 import ConfirmDialog from '../../components/common/ConfirmDialog.vue'
 import RoleSwitcher from '../../components/common/RoleSwitcher.vue'
+import ParentGuide from '../../components/common/ParentGuide.vue'
 
 const authStore = useAuthStore()
+const showGuide = ref(false)
 
 // 侧边栏
 const sidebarCollapsed = ref(false)
@@ -497,9 +503,11 @@ const tabs = computed(() => {
   const base = [
     { key: 'templates', icon: '📋', label: '模板' },
     { key: 'prizes', icon: '🎁', label: '奖品' },
-    { key: 'redemptions', icon: '📬', label: '审批' },
   ]
-  if (authStore.isAdmin) base.push({ key: 'children', icon: '👧', label: '孩子' })
+  if (authStore.isAdmin) {
+    base.push({ key: 'redemptions', icon: '📬', label: '审批' })
+    base.push({ key: 'children', icon: '👧', label: '孩子' })
+  }
   return base
 })
 const activeTab = ref('templates')

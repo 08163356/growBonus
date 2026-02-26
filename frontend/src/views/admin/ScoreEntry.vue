@@ -5,6 +5,10 @@
       <div class="flex items-center justify-between mb-5">
         <h1 class="text-xl font-bold" style="color: var(--theme-text)">积分打卡 ⭐</h1>
         <div class="flex items-center gap-2">
+          <button class="w-8 h-8 rounded-full flex items-center justify-center text-sm active:scale-90 transition-all"
+                  style="background: var(--theme-bg-secondary)"
+                  @click="showGuide = true"
+                  title="使用守则">📖</button>
           <RoleSwitcher />
           <BackgroundSetter />
         </div>
@@ -69,6 +73,7 @@
              style="background: var(--theme-warning, #F39C12); color: white">只读</div>
         <div class="text-3xl mb-2">{{ tpl.icon }}</div>
         <h4 class="text-sm font-bold truncate" style="color: var(--theme-text)">{{ tpl.name }}</h4>
+        <p v-if="tpl.description" class="text-[10px] truncate mt-0.5" style="color: var(--theme-text-light)">{{ tpl.description }}</p>
         <span class="text-xs font-bold mt-1 inline-block px-2 py-0.5 rounded-full"
               style="background: var(--theme-bg-secondary); color: var(--theme-primary)">
           +{{ tpl.points }}分
@@ -83,7 +88,7 @@
               @click="showTodayRecords = !showTodayRecords">
         今日记录 ({{ todayRecords.length }}) {{ showTodayRecords ? '▲' : '▼' }}
       </button>
-      <div v-if="showTodayRecords" class="space-y-3">
+      <div v-if="showTodayRecords" class="flex flex-col gap-3.5">
         <div v-for="record in todayRecords" :key="record.id"
              class="card p-3 cursor-pointer active:scale-[0.98] transition-all"
              @click="openRecordDetail(record)">
@@ -91,9 +96,15 @@
             <span class="text-xl">{{ record.template_icon || '⭐' }}</span>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold truncate">{{ record.template_name }}</p>
-              <p class="text-[10px]" style="color: var(--theme-text-light)">{{ record.created_at }}</p>
+              <p class="text-[10px]" style="color: var(--theme-text-light)">{{ record.template_description || record.created_at }}</p>
             </div>
             <span class="text-sm font-bold" style="color: var(--theme-primary)">+{{ record.points }}</span>
+            <button v-if="!authStore.isGuest"
+              class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs active:scale-90 transition-all"
+              style="background: #FFF0F0"
+              @click.stop="confirmWithdraw(record)">
+              ↩️
+            </button>
           </div>
           <div v-if="record.photo_url || record.encouragement" class="mt-2 flex items-center gap-2">
             <img v-if="record.photo_url" :src="getImageUrl(record.photo_url)"
@@ -157,6 +168,7 @@
     </teleport>
 
     <BottomNav />
+    <ParentGuide v-model:visible="showGuide" />
 
     <!-- 记录详情弹窗 -->
     <teleport to="body">
@@ -182,6 +194,18 @@
         </div>
       </transition>
     </teleport>
+
+    <!-- 撤回确认弹窗 -->
+    <ConfirmDialog
+      v-model:visible="showWithdrawConfirm"
+      title="撤回录入"
+      icon="↩️"
+      :message="`确定撤回「${withdrawTarget?.template_name}」的 +${withdrawTarget?.points} 分吗？撤回后积分将被扣除。`"
+      confirm-text="确认撤回"
+      cancel-text="取消"
+      :show-cancel="true"
+      @confirm="doWithdraw"
+    />
   </div>
 </template>
 
@@ -195,9 +219,12 @@ import { getImageUrl } from '../../services/api'
 import type { BehaviorTemplate, PointRecord, PointSummary, ChildInfo } from '../../types'
 import BottomNav from '../../components/common/BottomNav.vue'
 import BackgroundSetter from '../../components/common/BackgroundSetter.vue'
+import ConfirmDialog from '../../components/common/ConfirmDialog.vue'
 import RoleSwitcher from '../../components/common/RoleSwitcher.vue'
+import ParentGuide from '../../components/common/ParentGuide.vue'
 
 const authStore = useAuthStore()
+const showGuide = ref(false)
 
 const children = ref<ChildInfo[]>([])
 const selectedChildId = ref(0)
@@ -251,6 +278,26 @@ function removePhoto() {
 function openRecordDetail(record: PointRecord) {
   detailRecord.value = record
   showRecordDetail.value = true
+}
+
+// 撤回功能
+const showWithdrawConfirm = ref(false)
+const withdrawTarget = ref<PointRecord | null>(null)
+
+function confirmWithdraw(record: PointRecord) {
+  withdrawTarget.value = record
+  showWithdrawConfirm.value = true
+}
+
+async function doWithdraw() {
+  if (!withdrawTarget.value) return
+  try {
+    await pointApi.deleteRecord(withdrawTarget.value.id)
+    await refreshData()
+  } catch (e: any) {
+    alert(e.response?.data?.message || '撤回失败')
+  }
+  showWithdrawConfirm.value = false
 }
 
 async function submitScore() {

@@ -16,11 +16,12 @@ export const TIER_CONFIG: Record<string, { label: string; emoji: string; color: 
 
 export const LEVEL_CONFIG = [
   { name: '小种子', minPoints: 0, emoji: '🌱' },
-  { name: '小芽芽', minPoints: 50, emoji: '🌿' },
-  { name: '小树苗', minPoints: 150, emoji: '🌳' },
-  { name: '大树', minPoints: 350, emoji: '🌲' },
-  { name: '开花啦', minPoints: 600, emoji: '🌸' },
-  { name: '结果啦', minPoints: 1000, emoji: '🍎' },
+  { name: '小芽芽', minPoints: 100, emoji: '🌿' },
+  { name: '小树苗', minPoints: 500, emoji: '🌳' },
+  { name: '大树', minPoints: 1500, emoji: '🌲' },
+  { name: '开花啦', minPoints: 3000, emoji: '🌸' },
+  { name: '结果啦', minPoints: 6000, emoji: '🍎' },
+  { name: '小女王', minPoints: 10000, emoji: '👑' },
 ]
 
 export const THEME_CONFIG: Record<string, { label: string; primary: string; bg: string; accent: string }> = {

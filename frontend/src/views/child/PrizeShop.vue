@@ -9,147 +9,165 @@
       </div>
     </div>
 
-    <!-- 商城/记录切换 -->
-    <div class="px-page flex gap-2 mb-4">
-      <button v-for="tab in mainTabs" :key="tab.key"
-        class="flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
-        :style="{
-          background: activeMainTab === tab.key ? 'var(--theme-gradient)' : 'var(--theme-bg-card)',
-          color: activeMainTab === tab.key ? 'white' : 'var(--theme-text-light)',
-          boxShadow: activeMainTab === tab.key ? '0 2px 12px color-mix(in srgb, var(--theme-primary) 30%, transparent)' : '0 1px 4px rgba(0,0,0,0.04)',
-        }"
-        @click="activeMainTab = tab.key">
-        {{ tab.icon }} {{ tab.label }}
-      </button>
+    <!-- 侧边栏 + 内容区 -->
+    <div class="flex px-2 gap-2" style="min-height: calc(100vh - 180px)">
+      <!-- 侧边栏 -->
+      <div class="shrink-0 transition-all duration-300"
+           :style="{ width: sidebarCollapsed ? '48px' : '90px' }">
+        <div class="sticky top-0 flex flex-col gap-1.5">
+          <!-- 收缩按钮 -->
+          <button class="w-full flex items-center justify-center py-2 rounded-xl text-xs transition-all active:scale-95"
+                  style="background: var(--theme-bg-secondary); color: var(--theme-text-light)"
+                  @click="sidebarCollapsed = !sidebarCollapsed">
+            {{ sidebarCollapsed ? '▶' : '◀' }}
+          </button>
+
+          <!-- Tab 按钮 -->
+          <button v-for="tab in mainTabs" :key="tab.key"
+            class="w-full flex flex-col items-center gap-0.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+            :style="{
+              background: activeMainTab === tab.key ? 'var(--theme-gradient)' : 'var(--theme-bg-card)',
+              color: activeMainTab === tab.key ? 'white' : 'var(--theme-text-secondary)',
+              boxShadow: activeMainTab === tab.key ? '0 2px 8px color-mix(in srgb, var(--theme-primary) 30%, transparent)' : '0 1px 4px rgba(0,0,0,0.04)',
+            }"
+            @click="activeMainTab = tab.key">
+            <span class="text-lg">{{ tab.icon }}</span>
+            <span v-if="!sidebarCollapsed" class="text-[10px] leading-tight">{{ tab.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 内容区 -->
+      <div class="flex-1 min-w-0 pr-2">
+        <!-- ====== 商城 Tab ====== -->
+        <div v-if="activeMainTab === 'shop'">
+          <!-- 分档标签栏 -->
+          <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+            <button v-for="(cfg, key) in tierTabs" :key="key"
+              class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 whitespace-nowrap"
+              :style="{
+                background: activeTier === key ? cfg.color : 'transparent',
+                color: activeTier === key ? 'white' : 'var(--theme-text-secondary)',
+                border: activeTier === key ? 'none' : '1.5px solid #E8E8E8',
+              }"
+              @click="activeTier = key">
+              {{ cfg.emoji }} {{ cfg.label }}
+            </button>
+            <button class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 whitespace-nowrap"
+              :style="{
+                background: activeTier === 'all' ? 'var(--theme-primary)' : 'transparent',
+                color: activeTier === 'all' ? 'white' : 'var(--theme-text-secondary)',
+                border: activeTier === 'all' ? 'none' : '1.5px solid #E8E8E8',
+              }"
+              @click="activeTier = 'all'">
+              全部
+            </button>
+          </div>
+
+          <!-- 奖品网格 -->
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="prize in filteredPrizes" :key="prize.id"
+                 class="card overflow-hidden transition-all active:scale-[0.98]"
+                 @click="openPrizeDetail(prize)">
+              <div class="h-24 flex items-center justify-center overflow-hidden rounded-t-[20px]"
+                   :style="{ background: 'var(--theme-bg-secondary)' }">
+                <img v-if="getPrizeMainImage(prize)" :src="getPrizeMainImage(prize)!" class="w-full h-full object-cover" />
+                <span v-else class="text-5xl">{{ prize.type === 'virtual' ? '💫' : '🎁' }}</span>
+              </div>
+              <div class="p-3.5">
+                <div class="flex items-center gap-1 mb-1.5">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full"
+                        :style="{
+                          background: prize.type === 'virtual' ? '#F0E6FF' : '#FFF3E0',
+                          color: prize.type === 'virtual' ? '#A29BFE' : '#FF9F43',
+                        }">
+                    {{ prize.type === 'virtual' ? '💫 特别' : '🎁 实物' }}
+                  </span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full"
+                        :style="{ background: getTierColor(prize.tier) + '22', color: getTierColor(prize.tier) }">
+                    {{ getTierLabel(prize.tier) }}
+                  </span>
+                </div>
+                <h4 class="text-sm font-bold truncate" style="color: var(--theme-text)">{{ prize.name }}</h4>
+                <p class="text-[10px] truncate mt-0.5" style="color: var(--theme-text-light)">{{ prize.description }}</p>
+                <div class="flex items-center justify-between mt-3">
+                  <span class="text-sm font-bold" style="color: var(--theme-primary)">⭐ {{ prize.points_cost }}</span>
+                  <button v-if="canRedeem(prize)"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all active:scale-90"
+                    style="background: var(--theme-gradient)"
+                    @click.stop="startRedeem(prize)">
+                    兑换
+                  </button>
+                  <span v-else-if="isBudgetExhausted(prize)" class="text-[10px]" style="color: var(--theme-text-light)">
+                    暂时兑完啦
+                  </span>
+                  <span v-else class="text-[10px]" style="color: var(--theme-danger)">
+                    还差 {{ prize.points_cost - summary.availablePoints }} 分
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="filteredPrizes.length === 0" class="text-center py-12 text-sm"
+               style="color: var(--theme-text-light)">
+            这个分类暂时没有奖品哦 🎈
+          </div>
+        </div>
+
+        <!-- ====== 兑换记录 Tab ====== -->
+        <div v-if="activeMainTab === 'records'">
+          <!-- 状态筛选 -->
+          <div class="flex gap-1.5 mb-4 overflow-x-auto hide-scrollbar">
+            <button v-for="s in recordFilters" :key="s.key"
+              class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
+              :style="{
+                background: recordFilter === s.key ? 'var(--theme-primary)' : 'var(--theme-bg-card)',
+                color: recordFilter === s.key ? 'white' : 'var(--theme-text-light)',
+              }"
+              @click="recordFilter = s.key">
+              {{ s.label }}
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-3.5">
+            <div v-for="item in filteredRecords" :key="item.id" class="card p-3.5"
+                 @click="openRecordDetail(item)">
+              <div class="flex items-center gap-2.5 mb-2">
+                <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-white"
+                     style="background: var(--theme-bg-secondary)">
+                  <img v-if="item.prize_image" :src="getImageUrl(item.prize_image)" class="w-full h-full object-cover" />
+                  <span v-else class="text-lg">🎁</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold truncate" style="color: var(--theme-text)">{{ item.prize_name }}</h4>
+                  <p class="text-[11px]" style="color: var(--theme-text-light)">⭐{{ item.points_cost }}分 · {{ formatDate(item.created_at) }}</p>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold" :style="getStatusStyle(item.status)">
+                  {{ getStatusLabel(item.status) }}
+                </span>
+              </div>
+
+              <!-- 审批留言预览 -->
+              <div v-if="(item.status === 'approved' || item.status === 'rejected') && (item.approve_message || item.approve_images)"
+                   class="mt-2 p-2.5 rounded-xl" style="background: var(--theme-bg-secondary)">
+                <p class="text-[11px] font-semibold mb-1" :style="{ color: item.status === 'approved' ? '#00B894' : '#FF7675' }">
+                  {{ item.status === 'approved' ? '✅ 已通过' : '❌ 已拒绝' }} · 点击查看详情
+                </p>
+                <p v-if="item.approve_message" class="text-xs truncate" style="color: var(--theme-text)">
+                  💬 {{ item.approve_message }}
+                </p>
+              </div>
+            </div>
+
+            <div v-if="filteredRecords.length === 0"
+                 class="card p-8 text-center text-sm" style="color: var(--theme-text-light)">
+              {{ recordFilter === 'all' ? '还没有兑换记录哦' : '暂无' + getStatusLabel(recordFilter) + '的记录' }} 🎈
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- ====== 商城 Tab ====== -->
-    <template v-if="activeMainTab === 'shop'">
-      <!-- 分档标签栏 -->
-      <div class="px-page flex gap-2 mb-5 overflow-x-auto hide-scrollbar">
-        <button v-for="(cfg, key) in tierTabs" :key="key"
-          class="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
-          :style="{
-            background: activeTier === key ? cfg.color : 'transparent',
-            color: activeTier === key ? 'white' : 'var(--theme-text-secondary)',
-            border: activeTier === key ? 'none' : '2px solid #E8E8E8',
-          }"
-          @click="activeTier = key">
-          {{ cfg.emoji }} {{ cfg.label }}
-        </button>
-        <button class="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
-          :style="{
-            background: activeTier === 'all' ? 'var(--theme-primary)' : 'transparent',
-            color: activeTier === 'all' ? 'white' : 'var(--theme-text-secondary)',
-            border: activeTier === 'all' ? 'none' : '2px solid #E8E8E8',
-          }"
-          @click="activeTier = 'all'">
-          全部
-        </button>
-      </div>
-
-      <!-- 奖品网格 -->
-      <div class="px-page grid grid-cols-2 gap-4">
-        <div v-for="prize in filteredPrizes" :key="prize.id"
-             class="card overflow-hidden transition-all active:scale-[0.98]"
-             @click="openPrizeDetail(prize)">
-          <div class="h-24 flex items-center justify-center overflow-hidden rounded-t-[20px]"
-               :style="{ background: 'var(--theme-bg-secondary)' }">
-            <img v-if="getPrizeMainImage(prize)" :src="getPrizeMainImage(prize)!" class="w-full h-full object-cover" />
-            <span v-else class="text-5xl">{{ prize.type === 'virtual' ? '💫' : '🎁' }}</span>
-          </div>
-          <div class="p-3.5">
-            <div class="flex items-center gap-1 mb-1.5">
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full"
-                    :style="{
-                      background: prize.type === 'virtual' ? '#F0E6FF' : '#FFF3E0',
-                      color: prize.type === 'virtual' ? '#A29BFE' : '#FF9F43',
-                    }">
-                {{ prize.type === 'virtual' ? '💫 特别' : '🎁 实物' }}
-              </span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full"
-                    :style="{ background: getTierColor(prize.tier) + '22', color: getTierColor(prize.tier) }">
-                {{ getTierLabel(prize.tier) }}
-              </span>
-            </div>
-            <h4 class="text-sm font-bold truncate" style="color: var(--theme-text)">{{ prize.name }}</h4>
-            <p class="text-[10px] truncate mt-0.5" style="color: var(--theme-text-light)">{{ prize.description }}</p>
-            <div class="flex items-center justify-between mt-3">
-              <span class="text-sm font-bold" style="color: var(--theme-primary)">⭐ {{ prize.points_cost }}</span>
-              <button v-if="canRedeem(prize)"
-                class="px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all active:scale-90"
-                style="background: var(--theme-gradient)"
-                @click.stop="startRedeem(prize)">
-                兑换
-              </button>
-              <span v-else-if="isBudgetExhausted(prize)" class="text-[10px]" style="color: var(--theme-text-light)">
-                暂时兑完啦
-              </span>
-              <span v-else class="text-[10px]" style="color: var(--theme-danger)">
-                还差 {{ prize.points_cost - summary.availablePoints }} 分
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="filteredPrizes.length === 0" class="text-center py-12 text-sm px-page"
-           style="color: var(--theme-text-light)">
-        这个分类暂时没有奖品哦 🎈
-      </div>
-    </template>
-
-    <!-- ====== 兑换记录 Tab ====== -->
-    <template v-if="activeMainTab === 'records'">
-      <!-- 状态筛选 -->
-      <div class="px-page flex gap-1.5 mb-4 overflow-x-auto hide-scrollbar">
-        <button v-for="s in recordFilters" :key="s.key"
-          class="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
-          :style="{
-            background: recordFilter === s.key ? 'var(--theme-primary)' : 'var(--theme-bg-card)',
-            color: recordFilter === s.key ? 'white' : 'var(--theme-text-light)',
-          }"
-          @click="recordFilter = s.key">
-          {{ s.label }}
-        </button>
-      </div>
-
-      <div class="px-page space-y-3">
-        <div v-for="item in filteredRecords" :key="item.id" class="card p-3.5"
-             @click="openRecordDetail(item)">
-          <div class="flex items-center gap-2.5 mb-2">
-            <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-white"
-                 style="background: var(--theme-bg-secondary)">
-              <img v-if="item.prize_image" :src="getImageUrl(item.prize_image)" class="w-full h-full object-cover" />
-              <span v-else class="text-lg">🎁</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-bold truncate" style="color: var(--theme-text)">{{ item.prize_name }}</h4>
-              <p class="text-[11px]" style="color: var(--theme-text-light)">⭐{{ item.points_cost }}分 · {{ formatDate(item.created_at) }}</p>
-            </div>
-            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold" :style="getStatusStyle(item.status)">
-              {{ getStatusLabel(item.status) }}
-            </span>
-          </div>
-
-          <!-- 审批留言预览 -->
-          <div v-if="(item.status === 'approved' || item.status === 'rejected') && (item.approve_message || item.approve_images)"
-               class="mt-2 p-2.5 rounded-xl" style="background: var(--theme-bg-secondary)">
-            <p class="text-[11px] font-semibold mb-1" :style="{ color: item.status === 'approved' ? '#00B894' : '#FF7675' }">
-              {{ item.status === 'approved' ? '✅ 已通过' : '❌ 已拒绝' }} · 点击查看详情
-            </p>
-            <p v-if="item.approve_message" class="text-xs truncate" style="color: var(--theme-text)">
-              💬 {{ item.approve_message }}
-            </p>
-          </div>
-        </div>
-
-        <div v-if="filteredRecords.length === 0"
-             class="card p-8 text-center text-sm" style="color: var(--theme-text-light)">
-          {{ recordFilter === 'all' ? '还没有兑换记录哦' : '暂无' + getStatusLabel(recordFilter) + '的记录' }} 🎈
-        </div>
-      </div>
-    </template>
 
     <!-- ====== 奖品详情弹窗（支持多图轮播） ====== -->
     <teleport to="body">
@@ -337,6 +355,9 @@ import BottomNav from '../../components/common/BottomNav.vue'
 import ConfirmDialog from '../../components/common/ConfirmDialog.vue'
 
 const authStore = useAuthStore()
+
+// 侧边栏
+const sidebarCollapsed = ref(false)
 
 // 主Tab
 const mainTabs = [

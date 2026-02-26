@@ -66,14 +66,18 @@ function seed() {
   });
   console.log(`✅ 创建孩子: ${child.name} (PIN: 1234)`);
 
-  // 创建行为模板 - 生活习惯类
+  // ==================== 行为模板 ====================
+
+  // 第一层：日常习惯（高频低分）
   const lifeTemplates = [
-    { name: '自己刷牙', points: 1, icon: '🪥', description: '自己完成刷牙' },
-    { name: '自己穿衣服', points: 1, icon: '👕', description: '自己穿好衣服' },
-    { name: '按时睡觉', points: 2, icon: '😴', description: '按时上床睡觉' },
-    { name: '好好吃饭', points: 2, icon: '🍚', description: '不挑食好好吃饭' },
-    { name: '收拾玩具', points: 1, icon: '🧸', description: '自己收拾玩具' },
-    { name: '自己洗手', points: 1, icon: '🧼', description: '主动洗手' },
+    { name: '早起积极语', points: 3, icon: '☀️', description: '起床后大声说"美好的一天开始啦！"' },
+    { name: '自己刷牙洗脸', points: 3, icon: '🪥', description: '独立完成刷牙洗脸' },
+    { name: '自己穿衣服', points: 2, icon: '👕', description: '自己选衣服穿好' },
+    { name: '按时睡觉', points: 3, icon: '😴', description: '9点前上床睡觉' },
+    { name: '好好吃饭', points: 3, icon: '🍚', description: '不挑食好好吃饭' },
+    { name: '整理书包/玩具', points: 3, icon: '🧸', description: '自己收拾整理好' },
+    { name: '自己洗手', points: 2, icon: '🧼', description: '饭前便后主动洗手' },
+    { name: '帮家人做家务', points: 5, icon: '🧹', description: '洗碗/扫地/擦桌子等' },
   ];
 
   for (const t of lifeTemplates) {
@@ -81,14 +85,26 @@ function seed() {
   }
   console.log(`✅ 创建生活习惯模板 ${lifeTemplates.length} 个`);
 
-  // 创建行为模板 - 学习技能类
+  // 第二层：主修技能（钢琴 + 阅读/古诗/识字）
   const learnTemplates = [
-    { name: '认识新字', points: 3, icon: '📝', description: '认识了新的汉字' },
-    { name: '学会新儿歌', points: 5, icon: '🎵', description: '学会一首新儿歌' },
-    { name: '完成绘画', points: 4, icon: '🎨', description: '完成一幅画作' },
-    { name: '学会数学', points: 4, icon: '🔢', description: '掌握新的数学概念' },
-    { name: '读绘本', points: 3, icon: '📖', description: '读完一本绘本' },
-    { name: '学英语单词', points: 3, icon: '🔤', description: '学会新的英语单词' },
+    // 🎹 钢琴系列
+    { name: '练琴打卡（30分钟）', points: 8, icon: '🎹', description: '完成当天练琴≥30分钟' },
+    { name: '练琴满1小时', points: 12, icon: '🎹', description: '练琴超过1小时，额外奖励' },
+    { name: '学会新曲子', points: 30, icon: '🎶', description: '完整弹出一首新曲子' },
+    { name: '通过老师考核', points: 50, icon: '✅', description: '老师认可进入下一阶段' },
+    { name: '钢琴公开表演', points: 100, icon: '🎤', description: '在家人/朋友/比赛中表演' },
+    // 📖 阅读/古诗/识字系列
+    { name: '每日阅读打卡', points: 5, icon: '📖', description: '读绘本/识字≥15分钟' },
+    { name: '读完一本绘本', points: 10, icon: '📚', description: '完整读完一本绘本' },
+    { name: '能复述故事', points: 15, icon: '🗣️', description: '读完后能复述故事大意' },
+    { name: '背会新古诗', points: 15, icon: '📜', description: '完整背诵一首新古诗' },
+    { name: '认识10个新字', points: 10, icon: '📝', description: '累计认识10个新汉字' },
+    { name: '自主阅读一本书', points: 25, icon: '🏅', description: '不需大人帮忙独立看完一本书' },
+    { name: '给家人讲故事', points: 20, icon: '👨‍👩‍👧', description: '自己组织语言给家人讲一个故事' },
+    // 其他学习
+    { name: '完成绘画', points: 8, icon: '🎨', description: '完成一幅画作' },
+    { name: '学英语单词', points: 5, icon: '🔤', description: '学会新的英语单词' },
+    { name: '学会数学概念', points: 8, icon: '🔢', description: '掌握新的数学概念' },
   ];
 
   for (const t of learnTemplates) {
@@ -96,13 +112,15 @@ function seed() {
   }
   console.log(`✅ 创建学习技能模板 ${learnTemplates.length} 个`);
 
-  // 创建行为模板 - 社交品格类
+  // 第三层：社交品格
   const socialTemplates = [
-    { name: '主动分享', points: 5, icon: '🤝', description: '主动和小朋友分享' },
-    { name: '帮助家人', points: 6, icon: '💪', description: '帮助家人做事' },
-    { name: '主动打招呼', points: 5, icon: '👋', description: '见到人主动打招呼' },
-    { name: '不哭闹解决问题', points: 8, icon: '🧠', description: '遇到困难不哭闹想办法解决' },
-    { name: '说谢谢', points: 5, icon: '🙏', description: '主动说谢谢' },
+    { name: '主动分享', points: 5, icon: '🤝', description: '主动和小朋友/家人分享' },
+    { name: '主动打招呼', points: 3, icon: '👋', description: '见到人主动问好' },
+    { name: '帮助小朋友', points: 8, icon: '💪', description: '在幼儿园帮助同学' },
+    { name: '用语言表达情绪', points: 8, icon: '🧠', description: '不哭闹，说出"我觉得…"' },
+    { name: '说谢谢/对不起', points: 3, icon: '🙏', description: '主动使用礼貌用语' },
+    { name: '耐心等待', points: 5, icon: '⏳', description: '排队/等待时不催不闹' },
+    { name: '主动道歉', points: 8, icon: '💝', description: '做错事后主动承认并道歉' },
   ];
 
   for (const t of socialTemplates) {
@@ -110,13 +128,19 @@ function seed() {
   }
   console.log(`✅ 创建社交品格模板 ${socialTemplates.length} 个`);
 
-  // 创建行为模板 - 特别成就类
+  // 第四层：特别成就（里程碑）
   const achievementTemplates = [
-    { name: '学会骑自行车', points: 50, icon: '🚲', description: '学会骑自行车' },
-    { name: '独立讲故事', points: 30, icon: '📚', description: '自己完整讲一个故事' },
-    { name: '坚持习惯30天', points: 50, icon: '🏆', description: '坚持某个好习惯满30天' },
-    { name: '第一次游泳', points: 40, icon: '🏊', description: '第一次下水游泳' },
-    { name: '表演节目', points: 30, icon: '🎭', description: '在大家面前表演节目' },
+    { name: '钢琴学完一本教材', points: 200, icon: '🎹', description: '完成一本钢琴教材全部曲目' },
+    { name: '累计背诵50首古诗', points: 150, icon: '📜', description: '古诗积累达到50首' },
+    { name: '累计背诵100首古诗', points: 300, icon: '👏', description: '古诗积累达到100首' },
+    { name: '独立讲完整故事', points: 50, icon: '📚', description: '讲一个有起承转合的完整故事' },
+    { name: '学会骑自行车', points: 80, icon: '🚲', description: '学会骑自行车' },
+    { name: '学会游泳', points: 80, icon: '🏊', description: '学会基本游泳' },
+    { name: '在众人面前表演', points: 60, icon: '🎭', description: '勇敢在大家面前表演节目' },
+    { name: '坚持某习惯30天', points: 100, icon: '🏆', description: '任何一个好习惯坚持满30天' },
+    { name: '第一次做饭/烘焙', points: 50, icon: '🧁', description: '在家人指导下完成烹饪/烘焙' },
+    { name: '坚持练琴14天', points: 80, icon: '🔥', description: '连续14天完成练琴打卡' },
+    { name: '坚持阅读14天', points: 60, icon: '📖', description: '连续14天完成阅读打卡' },
   ];
 
   for (const t of achievementTemplates) {
@@ -124,26 +148,38 @@ function seed() {
   }
   console.log(`✅ 创建特别成就模板 ${achievementTemplates.length} 个`);
 
-  // 创建奖品
+  // ==================== 奖品商城 ====================
   const prizes = [
-    // 小奖
-    { name: '贴纸书', pointsCost: 20, materialCost: 25, tier: 'small', type: 'material', description: '一本可爱的贴纸书', stock: 5 },
-    { name: '小玩偶', pointsCost: 20, materialCost: 25, tier: 'small', type: 'material', description: '毛绒小玩偶', stock: 3 },
-    { name: '彩泥套装', pointsCost: 20, materialCost: 20, tier: 'small', type: 'material', description: '12色彩泥', stock: 3 },
-    // 中奖
-    { name: '绘本套装', pointsCost: 80, materialCost: 100, tier: 'medium', type: 'material', description: '5本精选绘本', stock: 2 },
-    { name: '水彩笔套装', pointsCost: 80, materialCost: 90, tier: 'medium', type: 'material', description: '36色水彩笔', stock: 2 },
-    { name: '拼图', pointsCost: 80, materialCost: 80, tier: 'medium', type: 'material', description: '100片卡通拼图', stock: 2 },
-    // 大奖
-    { name: '乐高积木', pointsCost: 200, materialCost: 250, tier: 'large', type: 'material', description: '乐高经典创意积木', stock: 1 },
-    { name: '儿童相机', pointsCost: 200, materialCost: 200, tier: 'large', type: 'material', description: '儿童数码相机', stock: 1 },
-    // 超级奖
-    { name: '游乐园一日游', pointsCost: 500, materialCost: 600, tier: 'super', type: 'material', description: '和家人一起去游乐园', stock: 1 },
-    // 虚拟奖品
-    { name: '和叔叔视频通话', pointsCost: 15, materialCost: 0, tier: 'small', type: 'virtual', description: '和叔叔视频通话30分钟想玩什么都行', stock: -1 },
-    { name: '叔叔画一幅画', pointsCost: 30, materialCost: 0, tier: 'small', type: 'virtual', description: '叔叔给你画一幅你想要的画', stock: -1 },
-    { name: '超级宝贝称号', pointsCost: 50, materialCost: 0, tier: 'medium', type: 'virtual', description: '获得"超级宝贝"特别称号一周', stock: -1 },
-    { name: '选择晚餐菜单', pointsCost: 10, materialCost: 0, tier: 'small', type: 'virtual', description: '今天晚餐你来决定吃什么', stock: -1 },
+    // 小奖（≤100积分）—— 特权 & 小物件
+    { name: '选择晚餐菜单', pointsCost: 15, materialCost: 0, tier: 'small', type: 'virtual', description: '今天晚餐你来决定吃什么', stock: -1 },
+    { name: '看一集喜欢的动画', pointsCost: 15, materialCost: 0, tier: 'small', type: 'virtual', description: '自选一集动画片', stock: -1 },
+    { name: '和叔叔视频通话', pointsCost: 20, materialCost: 0, tier: 'small', type: 'virtual', description: '和叔叔视频通话30分钟', stock: -1 },
+    { name: '晚睡30分钟', pointsCost: 20, materialCost: 0, tier: 'small', type: 'virtual', description: '今晚可以晚睡30分钟', stock: -1 },
+    { name: '选一个冰淇淋', pointsCost: 25, materialCost: 5, tier: 'small', type: 'material', description: '选一个喜欢的冰淇淋', stock: -1 },
+    { name: '贴纸书', pointsCost: 30, materialCost: 15, tier: 'small', type: 'material', description: '一本可爱的贴纸书', stock: 5 },
+    { name: '小发卡/小饰品', pointsCost: 30, materialCost: 15, tier: 'small', type: 'material', description: '自选一个小饰品', stock: 5 },
+    { name: '和爸妈玩桌游1小时', pointsCost: 30, materialCost: 0, tier: 'small', type: 'virtual', description: '爸爸或妈妈陪玩桌游1小时', stock: -1 },
+    { name: '彩泥套装', pointsCost: 40, materialCost: 20, tier: 'small', type: 'material', description: '12色彩泥套装', stock: 3 },
+    // 中奖（101-500积分）
+    { name: '叔叔画一幅定制画', pointsCost: 100, materialCost: 0, tier: 'medium', type: 'virtual', description: '叔叔给你画一幅你想要的画', stock: -1 },
+    { name: '邀请好朋友来家里玩', pointsCost: 120, materialCost: 50, tier: 'medium', type: 'material', description: '准备零食和游戏招待好朋友', stock: -1 },
+    { name: '水彩笔/画笔套装', pointsCost: 120, materialCost: 50, tier: 'medium', type: 'material', description: '36色水彩笔或画笔', stock: 2 },
+    { name: '绘本套装', pointsCost: 150, materialCost: 80, tier: 'medium', type: 'material', description: '5本精选绘本', stock: 2 },
+    { name: '看一场电影', pointsCost: 150, materialCost: 60, tier: 'medium', type: 'material', description: '和家人一起去看电影', stock: -1 },
+    { name: '新书包/文具盒', pointsCost: 150, materialCost: 80, tier: 'medium', type: 'material', description: '自选一个新书包或文具盒', stock: 1 },
+    { name: '去公园野餐', pointsCost: 200, materialCost: 100, tier: 'medium', type: 'material', description: '和家人一起去公园野餐', stock: -1 },
+    { name: '自选一个玩具（100元内）', pointsCost: 200, materialCost: 100, tier: 'medium', type: 'material', description: '自己挑选一个100元以内的玩具', stock: -1 },
+    // 大奖（501-2000积分）
+    { name: '乐高积木', pointsCost: 600, materialCost: 200, tier: 'large', type: 'material', description: '乐高经典创意积木', stock: 1 },
+    { name: '儿童相机', pointsCost: 600, materialCost: 200, tier: 'large', type: 'material', description: '儿童数码相机', stock: 1 },
+    { name: '新裙子/新鞋（自选）', pointsCost: 800, materialCost: 250, tier: 'large', type: 'material', description: '自己挑选一条新裙子或一双新鞋', stock: -1 },
+    { name: '动物园/水族馆', pointsCost: 800, materialCost: 300, tier: 'large', type: 'material', description: '和家人一起去动物园或水族馆', stock: -1 },
+    { name: '游乐园一日游', pointsCost: 1000, materialCost: 400, tier: 'large', type: 'material', description: '和家人一起去游乐园玩一天', stock: -1 },
+    { name: '周末短途旅行', pointsCost: 1500, materialCost: 600, tier: 'large', type: 'material', description: '周末和家人一起短途旅行', stock: -1 },
+    // 超级奖（>2000积分）
+    { name: '自选大礼物（300元内）', pointsCost: 2500, materialCost: 300, tier: 'super', type: 'material', description: '自己挑选一个300元以内的大礼物', stock: -1 },
+    { name: '迪士尼/长隆乐园', pointsCost: 3000, materialCost: 800, tier: 'super', type: 'material', description: '一次迪士尼或长隆乐园之旅', stock: 1 },
+    { name: '一次特别旅行', pointsCost: 5000, materialCost: 1500, tier: 'super', type: 'material', description: '去一个一直想去的地方旅行', stock: 1 },
   ];
 
   for (const p of prizes) {
@@ -151,18 +187,27 @@ function seed() {
   }
   console.log(`✅ 创建奖品 ${prizes.length} 个`);
 
-  // 创建成就
+  // ==================== 成就系统 ====================
   const achievements = [
+    // 积分里程碑
     { name: '初出茅庐', description: '获得第一个积分', icon: '🌟', conditionType: 'total_points', conditionValue: 1 },
-    { name: '积分达人', description: '累计获得100分', icon: '💯', conditionType: 'total_points', conditionValue: 100 },
-    { name: '积分之王', description: '累计获得500分', icon: '👑', conditionType: 'total_points', conditionValue: 500 },
+    { name: '百分小达人', description: '累计获得100分', icon: '💯', conditionType: 'total_points', conditionValue: 100 },
+    { name: '五百分大关', description: '累计获得500分', icon: '🥇', conditionType: 'total_points', conditionValue: 500 },
+    { name: '千分之星', description: '累计获得1000分', icon: '⭐', conditionType: 'total_points', conditionValue: 1000 },
+    { name: '积分女王', description: '累计获得5000分', icon: '👑', conditionType: 'total_points', conditionValue: 5000 },
+    // 连续打卡
     { name: '坚持三天', description: '连续打卡3天', icon: '🔥', conditionType: 'consecutive_days', conditionValue: 3 },
-    { name: '一周之星', description: '连续打卡7天', icon: '⭐', conditionType: 'consecutive_days', conditionValue: 7 },
+    { name: '一周之星', description: '连续打卡7天', icon: '🌈', conditionType: 'consecutive_days', conditionValue: 7 },
+    { name: '两周达人', description: '连续打卡14天', icon: '💎', conditionType: 'consecutive_days', conditionValue: 14 },
     { name: '月度之星', description: '连续打卡30天', icon: '🌙', conditionType: 'consecutive_days', conditionValue: 30 },
-    { name: '生活小能手', description: '完成20次生活习惯', icon: '🏠', conditionType: 'life_count', conditionValue: 20 },
-    { name: '学习小达人', description: '完成15次学习技能', icon: '📚', conditionType: 'learn_count', conditionValue: 15 },
-    { name: '社交小明星', description: '完成10次社交品格', icon: '🌈', conditionType: 'social_count', conditionValue: 10 },
-    { name: '百事通', description: '累计记录50次行为', icon: '🎯', conditionType: 'total_records', conditionValue: 50 },
+    // 分类达成
+    { name: '生活小能手', description: '完成30次生活习惯', icon: '🏠', conditionType: 'life_count', conditionValue: 30 },
+    { name: '学习小达人', description: '完成30次学习技能', icon: '📚', conditionType: 'learn_count', conditionValue: 30 },
+    { name: '社交小明星', description: '完成15次社交品格', icon: '🌈', conditionType: 'social_count', conditionValue: 15 },
+    { name: '成就收割机', description: '完成5次特别成就', icon: '🏆', conditionType: 'achievement_count', conditionValue: 5 },
+    // 总记录
+    { name: '百事通', description: '累计记录100次行为', icon: '🎯', conditionType: 'total_records', conditionValue: 100 },
+    { name: '千次达人', description: '累计记录500次行为', icon: '🗂️', conditionType: 'total_records', conditionValue: 500 },
   ];
 
   const achievementInsert = db.prepare(`
